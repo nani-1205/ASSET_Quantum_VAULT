@@ -205,7 +205,6 @@
   .table thead.table-dark th { /* Target thead th within table-dark explicitly */
     font-family: var(--font-heading);
     font-weight: 600;
-    /* --- CONFIRMED COLOR --- */
     color: var(--futuristic-text); /* Brighter text for header */
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -306,13 +305,11 @@
   .btn-primary {
     background-color: var(--futuristic-primary);
     border-color: var(--futuristic-primary);
-    /* --- CONFIRMED COLOR --- */
     color: #111; /* Dark text for better contrast on cyan */
   }
   .btn-primary:hover {
     background-color: var(--futuristic-primary-darker);
     border-color: var(--futuristic-primary-darker);
-    /* --- CONFIRMED COLOR --- */
     color: #000; /* Keep dark text */
     box-shadow: 0 0 15px rgba(10, 239, 255, 0.5);
   }
@@ -331,21 +328,21 @@
   .btn-success {
     background-color: var(--futuristic-success);
     border-color: var(--futuristic-success);
-     /* --- CONFIRMED COLOR --- */
-    color: #000; /* Dark text for contrast on neon green */
+    /* --- CORRECTED COLOR FOR CONTRAST --- */
+    color: #111; /* Use dark text on neon green */
   }
   .btn-success:hover {
     background-color: #00e68a;
     border-color: #00e68a;
-     /* --- CONFIRMED COLOR --- */
-    color: #000;
+     /* --- CORRECTED COLOR --- */
+    color: #111; /* Keep dark text */
     box-shadow: 0 0 15px rgba(0, 255, 156, 0.5);
   }
   
   .btn-danger {
     background-color: var(--futuristic-danger);
     border-color: var(--futuristic-danger);
-    color: #fff;
+    color: #fff; /* White text is fine on pink/red */
   }
   .btn-danger:hover {
     background-color: #ff335a;
@@ -415,10 +412,10 @@
   /* Make alert text brighter for better contrast */
   .alert-primary { background-color: rgba(10, 239, 255, 0.1); color: var(--futuristic-primary); border-color: rgba(10, 239, 255, 0.3); }
   .alert-secondary { background-color: rgba(111, 66, 193, 0.1); color: #d6bcfc; border-color: rgba(111, 66, 193, 0.3); }
-  .alert-success { background-color: rgba(0, 255, 156, 0.1); color: var(--futuristic-success); border-color: rgba(0, 255, 156, 0.3); }
-  .alert-danger { background-color: rgba(255, 77, 109, 0.1); color: var(--futuristic-danger); border-color: rgba(255, 77, 109, 0.3); }
-  .alert-warning { background-color: rgba(255, 235, 59, 0.1); color: var(--futuristic-warning); border-color: rgba(255, 235, 59, 0.3); }
-  .alert-info { background-color: rgba(33, 150, 243, 0.1); color: var(--futuristic-info); border-color: rgba(33, 150, 243, 0.3); }
+  .alert-success { background-color: rgba(0, 255, 156, 0.15); color: var(--futuristic-success); border-color: rgba(0, 255, 156, 0.3); }
+  .alert-danger { background-color: rgba(255, 77, 109, 0.15); color: var(--futuristic-danger); border-color: rgba(255, 77, 109, 0.3); }
+  .alert-warning { background-color: rgba(255, 235, 59, 0.15); color: var(--futuristic-warning); border-color: rgba(255, 235, 59, 0.3); }
+  .alert-info { background-color: rgba(33, 150, 243, 0.15); color: var(--futuristic-info); border-color: rgba(33, 150, 243, 0.3); }
   .alert-light { background-color: rgba(224, 224, 224, 0.1); color: var(--futuristic-text); border-color: rgba(224, 224, 224, 0.3); }
   .alert-dark { background-color: rgba(50, 50, 80, 0.5); color: var(--futuristic-text-muted); border-color: var(--futuristic-border); }
   
@@ -427,12 +424,16 @@
       color: inherit !important; /* Inherit the alert text color */
       text-decoration: underline;
   }
+  /* --- CORRECTED CLOSE BUTTON STYLE --- */
   .alert .btn-close {
-      filter: invert(75%) sepia(5%) saturate(1000%) hue-rotate(200deg) brightness(90%) contrast(90%); /* Adjust filter for muted appearance */
+      /* Simple white close button for dark themes */
+      filter: invert(1) grayscale(100%) brightness(150%);
+      opacity: 0.7;
   }
   .alert .btn-close:hover {
-      filter: invert(90%) sepia(10%) saturate(1500%) hue-rotate(200deg) brightness(100%) contrast(100%); /* Brighter on hover */
+      opacity: 1;
   }
+  /* --- END CORRECTION --- */
   
   /*------------------------------------*\
       Password Display/Controls
