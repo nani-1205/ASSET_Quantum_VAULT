@@ -4,15 +4,18 @@ from dotenv import load_dotenv
 # Get the absolute path of the directory the config.py file is in (i.e., /root/ASSET_Quantum_VAULT/app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Construct the absolute path to the .env file, assuming it's one level above the 'app' directory
-dotenv_path = os.path.join(basedir, '../.env')
+# Construct the potentially relative path first
+raw_dotenv_path = os.path.join(basedir, '../.env')
+
+# **** IMPORTANT CHANGE: Normalize the path to get the absolute path ****
+# This should resolve '/root/ASSET_Quantum_VAULT/app/../.env' to '/root/ASSET_Quantum_VAULT/.env'
+dotenv_path = os.path.abspath(raw_dotenv_path)
 
 # --- Debug: Print the path being checked for .env ---
-print(f"--- [config.py] Attempting to load .env file from: {dotenv_path}")
+print(f"--- [config.py] Attempting to load .env file from (normalized): {dotenv_path}") # Use the normalized path
 
 # Load environment variables from the specified .env file path
 # verbose=True will print debugging information from python-dotenv itself
-# override=True might be useful if variables are potentially set elsewhere, but usually not needed here.
 loaded = load_dotenv(dotenv_path=dotenv_path, verbose=True)
 
 # --- Debug: Print whether dotenv reported successful loading ---
@@ -22,7 +25,10 @@ else:
     print(f"--- [config.py] WARNING: python-dotenv reported that it did NOT load '{dotenv_path}'. Check permissions and path.")
     # Optional: Check if the file even exists
     if not os.path.exists(dotenv_path):
-        print(f"--- [config.py] CRITICAL: The file '{dotenv_path}' does not exist.")
+        print(f"--- [config.py] CRITICAL: The file '{dotenv_path}' does not exist (even after path normalization).")
+    else:
+         # If the file exists but didn't load, check permissions
+         print(f"--- [config.py] INFO: File '{dotenv_path}' exists, but was not loaded. Check read permissions for the user running the application.")
 
 
 class Config:
@@ -32,8 +38,7 @@ class Config:
     print(f"--- [config.py] SECRET_KEY from env: {'*' * len(SECRET_KEY) if SECRET_KEY else 'Not Found'}") # Avoid logging the actual key
     if not SECRET_KEY:
         print("--- [config.py] WARNING: SECRET_KEY not found in environment.")
-    # Provide a default only as a last resort for basic running, but it's insecure
-    SECRET_KEY = SECRET_KEY or 'default-insecure-key-set-in-env'
+    SECRET_KEY = SECRET_KEY or 'default-insecure-key-set-in-env' # Fallback only
 
     MONGO_USERNAME = os.environ.get('MONGO_USERNAME')
     MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD')
@@ -63,8 +68,7 @@ class Config:
 
     # Initial Admin Credentials (used only if DB is empty)
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'changeme') # Change this default
-    # --- Debug: Print admin username being used ---
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'changeme')
     print(f"--- [config.py] Initial ADMIN_USERNAME: {ADMIN_USERNAME}")
 
 
@@ -75,6 +79,3 @@ class Config:
     # SESSION_COOKIE_SECURE = True
     # SESSION_COOKIE_HTTPONLY = True
     # SESSION_COOKIE_SAMESITE = 'Lax'
-
-# You could add DevelopmentConfig, ProductionConfig, TestingConfig subclasses here
-# if needed, inheriting from Config and overriding specific settings.
