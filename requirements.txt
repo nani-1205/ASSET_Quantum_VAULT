@@ -1,0 +1,10 @@
+Flask
+Flask-WTF
+Flask-Login
+pymongo[srv] # Use [srv] if connecting to MongoDB Atlas
+werkzeug    # For password hashing
+python-dotenv # To load .env file
+cryptography # For strong encryption
+openpyxl    # For XLSX reports
+reportlab   # For PDF reports
+email-validator # Required by Flask-WTF for Email() validator

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+
+    <form method="POST" action="{{ form_action }}">
+        {{ form.hidden_tag() }} {# CSRF token #}
+
+        <div class="mb-3">
+            {{ form.server_name.label(class="form-label") }}
+            {{ form.server_name(class="form-control" + (" is-invalid" if form.server_name.errors else ""), placeholder="e.g., Web Server 01") }}
+            {% if form.server_name.errors %}<div class="invalid-feedback">{% for error in form.server_name.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.ip_address.label(class="form-label") }}
+            {{ form.ip_address(class="form-control" + (" is-invalid" if form.ip_address.errors else ""), placeholder="e.g., 192.168.1.100 or web01.example.com") }}
+             {% if form.ip_address.errors %}<div class="invalid-feedback">{% for error in form.ip_address.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+            {{ form.login_as.label(class="form-label") }}
+            {{ form.login_as(class="form-control" + (" is-invalid" if form.login_as.errors else ""), placeholder="e.g., admin, root, service_user") }}
+             {% if form.login_as.errors %}<div class="invalid-feedback">{% for error in form.login_as.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+             {# Add note about password being optional on edit #}
+             {% if 'Edit' in title %}
+                <label class="form-label" for="password">{{ form.password.label.text }} (Leave blank to keep current password)</label>
+            {% else %}
+                 {{ form.password.label(class="form-label") }}
+             {% endif %}
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+             {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+             {% if form.confirm_password.errors %}<div class="invalid-feedback">{% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+            {{ form.notes.label(class="form-label") }}
+            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows="3") }}
+             {% if form.notes.errors %}<div class="invalid-feedback">{% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('admin.view_servers') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+{% endblock %}

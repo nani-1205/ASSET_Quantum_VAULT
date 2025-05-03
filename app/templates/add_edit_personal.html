@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "_formhelpers.html" import render_field %} {# Optional macro for cleaner fields #}
+
+{% block content %}
+    <h2>{{ title }}</h2> {# Title passed from route e.g., "Add Personal Password" or "Edit Personal Password" #}
+
+    {# If using macros: #}
+    {#
+    <form method="POST" action="{{ form_action }}">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.website_or_service, placeholder="e.g., Google, Company VPN") }}
+        {{ render_field(form.username, placeholder="e.g., your_email@example.com") }}
+
+        <div class="mb-3">
+            {% if 'Edit' in title %}
+               <label class="form-label" for="password">{{ form.password.label.text }} (Leave blank to keep current password)</label>
+           {% else %}
+                {{ form.password.label(class="form-label") }}
+            {% endif %}
+           {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+            {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        {{ render_field(form.confirm_password) }}
+        {{ render_field(form.notes, rows="3", placeholder="Any additional notes...") }}
+
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+    #}
+
+    {# If NOT using macros (more verbose): #}
+     <form method="POST" action="{{ form_action }}"> {# form_action URL passed from the route #}
+        {{ form.hidden_tag() }} {# CSRF token #}
+
+        <div class="mb-3">
+            {{ form.website_or_service.label(class="form-label") }}
+            {{ form.website_or_service(class="form-control" + (" is-invalid" if form.website_or_service.errors else ""), placeholder="e.g., Google, Company VPN") }}
+            {% if form.website_or_service.errors %}<div class="invalid-feedback">{% for error in form.website_or_service.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="e.g., your_email@example.com") }}
+             {% if form.username.errors %}<div class="invalid-feedback">{% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+             {# Add note about password being optional on edit #}
+             {% if 'Edit' in title %}
+                <label class="form-label" for="password">{{ form.password.label.text }} (Leave blank to keep current password)</label>
+            {% else %}
+                 {{ form.password.label(class="form-label") }}
+             {% endif %}
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+             {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+             {% if form.confirm_password.errors %}<div class="invalid-feedback">{% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        <div class="mb-3">
+            {{ form.notes.label(class="form-label") }}
+            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows="3", placeholder="Any additional notes or recovery keys...") }}
+             {% if form.notes.errors %}<div class="invalid-feedback">{% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+       </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancel</a> {# Redirect to user dashboard #}
+    </form>
+
+{% endblock %}

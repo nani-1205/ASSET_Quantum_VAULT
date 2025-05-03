@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Grant Temporary Admin Access</h2>
+
+    {% if form.user_id.choices %}
+        <form method="POST" action="{{ url_for('admin.temporary_access') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.user_id.label(class="form-label") }}
+                {{ form.user_id(class="form-select" + (" is-invalid" if form.user_id.errors else "")) }}
+                {% if form.user_id.errors %}<div class="invalid-feedback">{% for error in form.user_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+            </div>
+
+             <div class="mb-3">
+                {{ form.expiry_datetime.label(class="form-label") }}
+                {{ form.expiry_datetime(class="form-control" + (" is-invalid" if form.expiry_datetime.errors else "")) }}
+                <div class="form-text">Select the date and time (in UTC) when access should automatically expire. Leave blank for indefinite access (manual revocation required).</div>
+                 {% if form.expiry_datetime.errors %}<div class="invalid-feedback">{% for error in form.expiry_datetime.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+           </div>
+
+
+            {{ form.submit(class="btn btn-warning") }}
+        </form>
+    {% else %}
+        <p class="alert alert-info">No eligible users found to grant temporary access.</p>
+    {% endif %}
+
+
+    <h3 class="mt-5">Current Temporary Admins</h3>
+    {% if temp_admins %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Access Expires</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in temp_admins %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            {% if user.temp_admin_expiry %}
+                                {{ user.temp_admin_expiry.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+                            {% else %}
+                                Indefinite (Manual Revoke Needed)
+                            {% endif %}
+                        </td>
+                        <td>
+                             <form action="{{ url_for('admin.revoke_temporary_access', user_id=user.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to revoke temporary access for {{ user.username }}?');">
+                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                 <button type="submit" class="btn btn-sm btn-danger">Revoke Access</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users currently have temporary admin access.</p>
+    {% endif %}
+
+{% endblock %}

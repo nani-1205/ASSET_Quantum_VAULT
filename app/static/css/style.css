@@ -1,0 +1,22 @@
+/* Basic body padding */
+body {
+    padding-top: 56px; /* Adjust if navbar height changes */
+    padding-bottom: 60px; /* Space for footer */
+}
+
+/* Style for revealed password */
+.password-revealed {
+    background-color: #fff3cd; /* Light yellow background */
+    font-family: monospace;
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid #ffeeba;
+}
+
+/* Ensure inline forms for buttons don't break layout */
+td form {
+    margin: 0;
+    padding: 0;
+}
+
+/* Add more custom styles as needed */

@@ -1,0 +1,1 @@
+# This file can be empty or used for common route utilities/decorators if needed.

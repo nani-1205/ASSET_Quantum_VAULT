@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Admin Dashboard</h2>
+
+    {# Optional: Display summary info or quick actions #}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Servers</h5>
+                    <p class="card-text">Manage server credentials and details.</p>
+                    <a href="{{ url_for('admin.view_servers') }}" class="btn btn-primary">View Servers ({{ servers|length }})</a>
+                    <a href="{{ url_for('admin.add_server_route') }}" class="btn btn-success">Add Server</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+             <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Laptops</h5>
+                    <p class="card-text">Manage laptop credentials and software inventory.</p>
+                    <a href="{{ url_for('admin.view_laptops') }}" class="btn btn-primary">View Laptops ({{ laptops|length }})</a>
+                     <a href="{{ url_for('admin.add_laptop_route') }}" class="btn btn-success">Add Laptop</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <div class="row mb-4">
+        <div class="col-md-6">
+             <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Reporting</h5>
+                    <p class="card-text">Generate software inventory reports.</p>
+                    <a href="{{ url_for('admin.software_report', format='xlsx') }}" class="btn btn-info">Download XLSX Report</a>
+                    <a href="{{ url_for('admin.software_report', format='pdf') }}" class="btn btn-info">Download PDF Report</a>
+                </div>
+            </div>
+        </div>
+         {% if current_user.is_admin %} {# Only permanent admins see this #}
+        <div class="col-md-6">
+             <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">User Access</h5>
+                    <p class="card-text">Grant temporary administrative privileges.</p>
+                    <a href="{{ url_for('admin.temporary_access') }}" class="btn btn-warning">Manage Temporary Access</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+
+{% endblock %}

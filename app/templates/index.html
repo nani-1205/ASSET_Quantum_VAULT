@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {# This page might not be directly used if users are always redirected #}
+    {# to user_dashboard or admin_dashboard based on role #}
+    <h1>Welcome to ASSET Quantum VAULT</h1>
+    <p>Please log in or sign up to manage your assets.</p>
+    {# Or redirect logic could happen here if preferred over view function redirects #}
+    <script>
+        // Optional JS redirect if needed, but server-side is better
+        // window.location.href = "{{ url_for('main.index') }}"; // Redirect to dashboard logic
+    </script>
+{% endblock %}
