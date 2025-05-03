@@ -4,16 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{{ title }} - ASSET Quantum VAULT</title>
-    <!-- Add Bootstrap CSS or your preferred CSS framework -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Your Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Add Font Awesome for icons if desired -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">ASSET Quantum VAULT</a>
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-shield-alt"></i> <!-- Optional: Add an icon -->
+                ASSET Quantum VAULT
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -21,42 +25,65 @@
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <span class="navbar-text me-3">Welcome, {{ current_user.username }}!
-                                {% if current_user.is_admin %} (Admin)
-                                {% elif current_user.is_temp_admin %} (Temp Admin)
+                            <span class="navbar-text me-3">
+                                <i class="fas fa-user"></i> Welcome, {{ current_user.username }}!
+                                {% if current_user.is_admin %}
+                                    <span class="badge bg-danger ms-1">Admin</span>
+                                {% elif current_user.is_temp_admin %}
+                                    <span class="badge bg-warning text-dark ms-1">Temp Admin</span>
                                 {% endif %}
                             </span>
                         </li>
                          <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">Dashboard</a>
+                            {# Link to the correct dashboard based on role #}
+                            {% if current_user.is_admin_or_temp() %}
+                                <a class="nav-link active" aria-current="page" href="{{ url_for('admin.admin_dashboard') }}">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            {% else %}
+                                <a class="nav-link active" aria-current="page" href="{{ url_for('main.index') }}"> {# main.index redirects or shows user dash #}
+                                     <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            {% endif %}
                         </li>
+
+                        {# Conditional Admin Menu #}
                         {% if current_user.is_admin_or_temp() %}
                          <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="adminMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Admin Menu
+                                <i class="fas fa-cogs"></i> Admin Menu
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuLink">
-                                <li><a class="dropdown-item" href="{{ url_for('admin.view_servers') }}">Manage Servers</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.view_laptops') }}">Manage Laptops</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.view_servers') }}"><i class="fas fa-server fa-fw me-2"></i>Manage Servers</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.view_laptops') }}"><i class="fas fa-laptop fa-fw me-2"></i>Manage Laptops</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.software_report', format='xlsx') }}">Software Report (XLSX)</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.software_report', format='pdf') }}">Software Report (PDF)</a></li>
-                                 {% if current_user.is_admin %} {# Only permanent admins grant access #}
+                                <li><a class="dropdown-item" href="{{ url_for('admin.software_report', format='xlsx') }}"><i class="fas fa-file-excel fa-fw me-2"></i>Software Report (XLSX)</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.software_report', format='pdf') }}"><i class="fas fa-file-pdf fa-fw me-2"></i>Software Report (PDF)</a></li>
+                                 {# Only permanent admins grant/revoke access #}
+                                 {% if current_user.is_admin %}
                                   <li><hr class="dropdown-divider"></li>
-                                  <li><a class="dropdown-item" href="{{ url_for('admin.temporary_access') }}">Temporary Access</a></li>
+                                  <li><a class="dropdown-item" href="{{ url_for('admin.temporary_access') }}"><i class="fas fa-user-clock fa-fw me-2"></i>Temporary Access</a></li>
                                 {% endif %}
                             </ul>
                          </li>
                         {% endif %}
+
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
                         </li>
                     {% else %}
+                        {# Links for non-authenticated users #}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.signup') }}">Sign Up</a>
+                            <a class="nav-link" href="{{ url_for('auth.signup') }}">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -64,19 +91,26 @@
         </div>
     </nav>
 
-    <main class="container">
-        {% include '_flashes.html' %} {# Include flash message partial #}
+    <main class="container mt-4">
+        {# Include flashed messages partial template #}
+        {% include '_flashes.html' %}
+        {# Main content block for child templates #}
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="mt-5 text-center text-muted">
-        <p>© {{ now().year }} ASSET Quantum VAULT</p>
+    <footer class="mt-5 py-3 bg-light text-center text-muted fixed-bottom">
+        <div class="container">
+            {# --- CORRECTED LINE BELOW --- #}
+            <p class="mb-0">© {{ current_year }} ASSET Quantum VAULT</p>
+            {# --- END CORRECTION --- #}
+        </div>
     </footer>
 
-    <!-- Add Bootstrap JS Bundle (includes Popper) or individual scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Add your custom JS -->
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Your Custom JS -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    {% block scripts %}{% endblock %} {# Placeholder for page-specific scripts #}
+    {# Placeholder for page-specific scripts #}
+    {% block scripts %}{% endblock %}
 </body>
 </html>
