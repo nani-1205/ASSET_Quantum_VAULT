@@ -1,9 +1,9 @@
-from bson import ObjectId, InvalidId # Make sure InvalidId is imported
+# --- CORRECTED IMPORT BELOW ---
+from bson import ObjectId # Remove InvalidId
+# --- END CORRECTION ---
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-# --- Added Import ---
 from typing import Optional, List, Dict, Any # Import Optional and other useful types
-# --- End Import ---
 from .extensions import mongo
 from .utils import encrypt_string, decrypt_string # Assuming decrypt_string now returns Optional[str]
 from datetime import datetime, timezone
@@ -93,6 +93,9 @@ VaultItem = Dict[str, Any]
 
 # -- Servers --
 def add_server(server_name: str, ip_address: Optional[str], login_as: str, password: str, notes: Optional[str], created_by_id: str) -> Optional[ObjectId]:
+    if not ObjectId.is_valid(created_by_id):
+         print(f"--- [models.py] ERROR: Invalid created_by_id format '{created_by_id}' in add_server.")
+         return None
     encrypted_password = encrypt_string(password)
     if not encrypted_password:
         print("--- [models.py] ERROR: Failed to encrypt server password.")
@@ -119,26 +122,29 @@ def get_all_servers() -> List[VaultItem]:
         servers_cursor = mongo.db.servers.find()
         for server in servers_cursor:
             server['_id'] = str(server['_id']) # Convert ObjectId for easier use
-            server['created_by'] = str(server.get('created_by')) # Convert creator ID too
-            # Decrypt password ONLY when needed (e.g., view/copy), not in the list view
+            # Safely convert created_by if it exists
+            created_by_obj = server.get('created_by')
+            server['created_by'] = str(created_by_obj) if created_by_obj else None
             servers.append(server)
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get all servers: {e}")
     return servers
 
-def get_server_by_id(server_id: str) -> Optional[VaultItem]: # Changed return type hint
+def get_server_by_id(server_id: str) -> Optional[VaultItem]:
     try:
         if not ObjectId.is_valid(server_id): return None
         server = mongo.db.servers.find_one({'_id': ObjectId(server_id)})
         if server:
             server['_id'] = str(server['_id'])
-            server['created_by'] = str(server.get('created_by'))
+            created_by_obj = server.get('created_by')
+            server['created_by'] = str(created_by_obj) if created_by_obj else None
         return server
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get server by ID {server_id}: {e}")
         return None
 
 def update_server(server_id: str, update_data: Dict[str, Any]) -> bool:
+    if not ObjectId.is_valid(server_id): return False
     # Re-encrypt password if it's being changed
     if 'password' in update_data and update_data['password']:
         encrypted_password = encrypt_string(update_data['password'])
@@ -150,7 +156,6 @@ def update_server(server_id: str, update_data: Dict[str, Any]) -> bool:
     else:
         # Ensure password isn't accidentally removed if not provided
         update_data.pop('password', None) # Remove plain text if present
-        # We keep the existing encrypted password if not updating
 
     update_data['last_updated'] = datetime.now(timezone.utc)
     # Remove fields that shouldn't be directly updated via $set if they sneak in
@@ -158,7 +163,6 @@ def update_server(server_id: str, update_data: Dict[str, Any]) -> bool:
     update_data.pop('created_by', None)
 
     try:
-        if not ObjectId.is_valid(server_id): return False
         result = mongo.db.servers.update_one(
             {'_id': ObjectId(server_id)},
             {'$set': update_data}
@@ -179,6 +183,9 @@ def delete_server(server_id: str) -> bool:
 
 # -- Laptops --
 def add_laptop(laptop_id_str: str, employee_name: str, username: str, password: str, installed_software: List[str], notes: Optional[str], created_by_id: str) -> Optional[ObjectId]:
+    if not ObjectId.is_valid(created_by_id):
+         print(f"--- [models.py] ERROR: Invalid created_by_id format '{created_by_id}' in add_laptop.")
+         return None
     encrypted_password = encrypt_string(password)
     if not encrypted_password:
         print("--- [models.py] ERROR: Failed to encrypt laptop password.")
@@ -206,7 +213,8 @@ def get_all_laptops() -> List[VaultItem]:
         laptops_cursor = mongo.db.laptops.find()
         for laptop in laptops_cursor:
             laptop['_id'] = str(laptop['_id'])
-            laptop['created_by'] = str(laptop.get('created_by'))
+            created_by_obj = laptop.get('created_by')
+            laptop['created_by'] = str(created_by_obj) if created_by_obj else None
             laptops.append(laptop)
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get all laptops: {e}")
@@ -218,13 +226,13 @@ def get_laptop_by_id(laptop_mongo_id: str) -> Optional[VaultItem]:
         laptop = mongo.db.laptops.find_one({'_id': ObjectId(laptop_mongo_id)})
         if laptop:
             laptop['_id'] = str(laptop['_id'])
-            laptop['created_by'] = str(laptop.get('created_by'))
+            created_by_obj = laptop.get('created_by')
+            laptop['created_by'] = str(created_by_obj) if created_by_obj else None
         return laptop
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get laptop by ID {laptop_mongo_id}: {e}")
         return None
 
-# --- NEW FUNCTION ---
 def get_laptops_by_ids(laptop_ids: List[str]) -> List[VaultItem]:
     """Fetches laptop data for a specific list of MongoDB _ids."""
     laptops: List[VaultItem] = []
@@ -247,14 +255,15 @@ def get_laptops_by_ids(laptop_ids: List[str]) -> List[VaultItem]:
         laptops_cursor = mongo.db.laptops.find({'_id': {'$in': object_ids}})
         for laptop in laptops_cursor:
             laptop['_id'] = str(laptop['_id'])
-            laptop['created_by'] = str(laptop.get('created_by'))
+            created_by_obj = laptop.get('created_by')
+            laptop['created_by'] = str(created_by_obj) if created_by_obj else None
             laptops.append(laptop)
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get laptops by IDs: {e}")
     return laptops
-# --- END NEW FUNCTION ---
 
 def update_laptop(laptop_mongo_id: str, update_data: Dict[str, Any]) -> bool:
+    if not ObjectId.is_valid(laptop_mongo_id): return False
     if 'password' in update_data and update_data['password']:
         encrypted_password = encrypt_string(update_data['password'])
         if not encrypted_password:
@@ -281,7 +290,6 @@ def update_laptop(laptop_mongo_id: str, update_data: Dict[str, Any]) -> bool:
     update_data.pop('created_by', None)
 
     try:
-        if not ObjectId.is_valid(laptop_mongo_id): return False
         result = mongo.db.laptops.update_one(
             {'_id': ObjectId(laptop_mongo_id)},
             {'$set': update_data}
@@ -310,7 +318,7 @@ def add_personal_password(user_id: str, website: str, username: str, password: s
         print("--- [models.py] ERROR: Failed to encrypt personal password.")
         return None
     personal_data = {
-        'user_id': ObjectId(user_id), # Ensure user_id is valid ObjectId before calling this
+        'user_id': ObjectId(user_id),
         'website_or_service': website,
         'username': username,
         'encrypted_password': encrypted_password,
@@ -331,7 +339,9 @@ def get_personal_passwords_for_user(user_id: str) -> List[VaultItem]:
         passwords_cursor = mongo.db.personal_passwords.find({'user_id': ObjectId(user_id)})
         for pw in passwords_cursor:
             pw['_id'] = str(pw['_id'])
-            pw['user_id'] = str(pw.get('user_id'))
+            # Safely convert user_id if it exists
+            user_id_obj = pw.get('user_id')
+            pw['user_id'] = str(user_id_obj) if user_id_obj else None
             passwords.append(pw)
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get personal passwords for user {user_id}: {e}")
@@ -346,7 +356,8 @@ def get_personal_password_by_id(password_id: str, user_id: str) -> Optional[Vaul
         })
         if pw:
             pw['_id'] = str(pw['_id'])
-            pw['user_id'] = str(pw.get('user_id'))
+            user_id_obj = pw.get('user_id')
+            pw['user_id'] = str(user_id_obj) if user_id_obj else None
         return pw
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get personal password ID {password_id} for user {user_id}: {e}")
@@ -354,7 +365,6 @@ def get_personal_password_by_id(password_id: str, user_id: str) -> Optional[Vaul
 
 def update_personal_password(password_id: str, user_id: str, update_data: Dict[str, Any]) -> bool:
      # Ensure user owns this password before updating
-     # We don't need get_personal_password_by_id here, the update query checks ownership
     if not ObjectId.is_valid(password_id) or not ObjectId.is_valid(user_id): return False
 
     if 'password' in update_data and update_data['password']:
@@ -395,9 +405,7 @@ def delete_personal_password(password_id: str, user_id: str) -> bool:
         print(f"--- [models.py] ERROR: Failed to delete personal password ID {password_id} for user {user_id}: {e}")
         return False
 
-# --- CORRECTED TYPE HINT BELOW ---
-def get_decrypted_password(item_type: str, item_id: str, user_id: Optional[str] = None) -> Optional[str]: # Changed from 'str | None'
-# --- END CORRECTION ---
+def get_decrypted_password(item_type: str, item_id: str, user_id: Optional[str] = None) -> Optional[str]:
     """Safely retrieves and decrypts a password for a specific item."""
     item: Optional[VaultItem] = None
     encrypted_pw: Optional[str] = None
