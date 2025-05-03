@@ -1,59 +1,392 @@
-/* Basic body styling */
-body {
-    /* padding-top is removed - not needed unless navbar is fixed-top */
-    /* padding-bottom is removed - footer position handled by flexbox */
-    /* background-color: #f8f9fa; */ /* Optional: Light background for body */
-}
-
-/* Style for revealed password */
-.password-revealed {
-    background-color: #fff3cd; /* Light yellow background */
-    font-family: monospace;
-    padding: 2px 4px;
-    border-radius: 3px;
-    border: 1px solid #ffeeba;
-    white-space: nowrap; /* Prevent line breaks */
-}
-
-/* Ensure inline forms for buttons don't break layout in tables */
-td form {
-    margin: 0;
-    padding: 0;
-    display: inline; /* Ensure form itself doesn't add block spacing */
-}
-
-/* Adjust alignment of password controls in table cells */
-td .password-display,
-td .btn-reveal,
-td .btn-copy {
-    vertical-align: middle;
-}
-
-/* Style for admin/temp admin badges */
-.navbar-text .badge {
-    vertical-align: middle;
-}
-
-/* Footer basic styling */
-footer {
-    border-top: 1px solid #dee2e6; /* Add a subtle top border */
-    background-color: #f8f9fa; /* Match bg-light Bootstrap class */
-}
-
-/* Add padding inside the main container for content spacing */
-main.container {
-    padding-top: 1.5rem; /* Space below navbar */
-    padding-bottom: 1.5rem; /* Space above footer */
-}
-
-/* Add more custom styles as needed */
-
-/* Example: Style for card elements on dashboard */
-.card {
+/*------------------------------------*\
+    Futuristic Theme Variables
+\*------------------------------------*/
+:root {
+    /* Base Colors */
+    --futuristic-bg: #12121f; /* Very dark blue/purple */
+    --futuristic-bg-secondary: #1a1a2e; /* Slightly lighter dark */
+    --futuristic-text: #e0e0e0; /* Light gray for text */
+    --futuristic-text-muted: #a0a0c0; /* Muted text */
+    --futuristic-border: #303050; /* Subtle border color */
+  
+    /* Accent Colors */
+    --futuristic-primary: #0aefff; /* Electric cyan/blue */
+    --futuristic-primary-darker: #08bccc;
+    --futuristic-secondary: #9c27b0; /* Purple */
+    --futuristic-success: #00ff9c; /* Neon green */
+    --futuristic-danger: #ff4d6d; /* Neon pink/red */
+    --futuristic-warning: #ffeb3b; /* Yellow */
+    --futuristic-info: #2196f3; /* Standard blue */
+  
+    /* Fonts */
+    --font-body: 'Poppins', sans-serif;
+    --font-heading: 'Rajdhani', sans-serif;
+  
+    /* Other */
+    --card-bg: #1f1f35;
+    --input-bg: #2a2a45;
+    --transition-speed: 0.3s;
+  }
+  
+  /* Apply dark theme defaults via attribute OR these overrides */
+  /* Using data-bs-theme="dark" is often easier */
+  body {
+    font-family: var(--font-body);
+    background-color: var(--futuristic-bg);
+    color: var(--futuristic-text);
+    line-height: 1.6;
+  }
+  
+  /*------------------------------------*\
+      Typography
+  \*------------------------------------*/
+  h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--futuristic-primary); /* Headings in accent color */
+    letter-spacing: 0.5px;
+  }
+  
+  a {
+    color: var(--futuristic-primary);
+    text-decoration: none;
+    transition: color var(--transition-speed) ease;
+  }
+  a:hover {
+    color: white;
+    text-decoration: underline;
+    text-decoration-color: var(--futuristic-primary);
+  }
+  
+  /*------------------------------------*\
+      Navbar
+  \*------------------------------------*/
+  .futuristic-nav {
+    background: linear-gradient(to right, #1a1a2e, #12121f); /* Subtle gradient */
+    border-bottom: 1px solid var(--futuristic-border);
+    box-shadow: 0 2px 15px rgba(10, 239, 255, 0.1); /* Subtle primary glow */
+  }
+  
+  .futuristic-brand {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #fff !important; /* Override default */
+    letter-spacing: 1px;
+    transition: text-shadow var(--transition-speed) ease;
+  }
+  .futuristic-brand:hover {
+    text-shadow: 0 0 8px var(--futuristic-primary);
+  }
+  .futuristic-brand img {
+    filter: brightness(1.1); /* Make logo slightly brighter if needed */
+  }
+  
+  .navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    transition: all var(--transition-speed) ease;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+     font-weight: 500; /* Slightly bolder nav links */
+  }
+  .navbar-dark .navbar-nav .nav-link:hover,
+  .navbar-dark .navbar-nav .nav-link:focus {
+    color: #fff;
+    background-color: rgba(10, 239, 255, 0.1); /* Subtle hover background */
+  }
+  .navbar-dark .navbar-nav .nav-link.active {
+    color: #fff;
+    font-weight: 700;
+    background-color: transparent; /* Remove default active background */
+    border-bottom: 2px solid var(--futuristic-primary);
+    border-radius: 0;
+  }
+  
+  .navbar-toggler {
+    border-color: var(--futuristic-border);
+  }
+  .navbar-toggler-icon {
+   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  }
+  
+  /* Futuristic Badges */
+  .badge {
+      font-family: var(--font-body);
+      font-weight: 500;
+  }
+  .futuristic-badge-admin {
+      background-color: var(--futuristic-danger);
+      color: #fff;
+  }
+  .futuristic-badge-temp {
+      background-color: var(--futuristic-warning);
+      color: #111; /* Dark text on yellow */
+  }
+  
+  /* Dropdown Menu */
+  .dropdown-menu-dark.futuristic-dropdown {
+      background-color: var(--futuristic-bg-secondary);
+      border: 1px solid var(--futuristic-border);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 0.5rem 0;
+  }
+  .dropdown-menu-dark.futuristic-dropdown .dropdown-item {
+      color: var(--futuristic-text-muted);
+      transition: all var(--transition-speed) ease;
+  }
+  .dropdown-menu-dark.futuristic-dropdown .dropdown-item:hover,
+  .dropdown-menu-dark.futuristic-dropdown .dropdown-item:focus {
+      color: #fff;
+      background-color: rgba(10, 239, 255, 0.15);
+  }
+  .dropdown-menu-dark.futuristic-dropdown .dropdown-divider {
+      border-top: 1px solid var(--futuristic-border);
+  }
+  
+  
+  /*------------------------------------*\
+      Main Content & Containers
+  \*------------------------------------*/
+  main.container {
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+  }
+  
+  .card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--futuristic-border);
+    border-radius: 8px; /* Slightly more rounded */
     margin-bottom: 1.5rem;
-}
-
-/* Style flash messages container */
-.container > .alert {
-    margin-top: 1rem; /* Add some space if flash appears at top */
-}
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  }
+  .card:hover {
+     transform: translateY(-3px);
+     box-shadow: 0 6px 20px rgba(10, 239, 255, 0.1); /* Glow on hover */
+  }
+  .card-header {
+    background-color: rgba(10, 239, 255, 0.05); /* Subtle accent header */
+    border-bottom: 1px solid var(--futuristic-border);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--futuristic-primary);
+  }
+  
+  /*------------------------------------*\
+      Tables
+  \*------------------------------------*/
+  .table {
+    border-color: var(--futuristic-border);
+  }
+  /* Use Bootstrap's table-dark or customize */
+  .table-dark {
+    --bs-table-bg: var(--card-bg);
+    --bs-table-border-color: var(--futuristic-border);
+    --bs-table-color: var(--futuristic-text);
+    --bs-table-striped-bg: var(--futuristic-bg-secondary); /* Darker stripe */
+    --bs-table-striped-color: var(--futuristic-text);
+    --bs-table-hover-bg: rgba(10, 239, 255, 0.1); /* Hover effect */
+    --bs-table-hover-color: #fff;
+  }
+  .table thead th {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--futuristic-primary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase; /* Optional: Uppercase headers */
+    font-size: 0.9rem;
+    border-bottom-width: 2px;
+  }
+  .table td, .table th {
+      vertical-align: middle;
+  }
+  
+  /*------------------------------------*\
+      Forms & Buttons
+  \*------------------------------------*/
+  .form-control, .form-select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--futuristic-border);
+    color: var(--futuristic-text);
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  }
+  .form-control:focus, .form-select:focus {
+    background-color: var(--input-bg);
+    color: var(--futuristic-text);
+    border-color: var(--futuristic-primary);
+    box-shadow: 0 0 0 0.25rem rgba(10, 239, 255, 0.25); /* Primary color focus glow */
+    outline: 0;
+  }
+  .form-control::placeholder {
+    color: var(--futuristic-text-muted);
+    opacity: 0.7;
+  }
+  /* For dark theme compatibility with autofill */
+  .form-control:-webkit-autofill,
+  .form-control:-webkit-autofill:hover,
+  .form-control:-webkit-autofill:focus,
+  .form-control:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+    -webkit-text-fill-color: var(--futuristic-text) !important;
+    caret-color: var(--futuristic-text); /* Ensure cursor is visible */
+  }
+  .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--futuristic-text-muted);
+  }
+  .form-check-input:checked {
+      background-color: var(--futuristic-primary);
+      border-color: var(--futuristic-primary);
+  }
+  .form-check-input:focus {
+    border-color: var(--futuristic-primary);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(10, 239, 255, 0.25);
+  }
+  
+  /* Buttons */
+  .btn {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    transition: all var(--transition-speed) ease;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent; /* Base border */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  
+  .btn-primary {
+    background-color: var(--futuristic-primary);
+    border-color: var(--futuristic-primary);
+    color: #000; /* Black text on bright cyan */
+  }
+  .btn-primary:hover {
+    background-color: var(--futuristic-primary-darker);
+    border-color: var(--futuristic-primary-darker);
+    color: #000;
+    box-shadow: 0 0 15px rgba(10, 239, 255, 0.5); /* Glow on hover */
+  }
+  
+  .btn-secondary {
+    background-color: #4b4b6e; /* Dark muted purple/gray */
+    border-color: #4b4b6e;
+    color: var(--futuristic-text);
+  }
+  .btn-secondary:hover {
+    background-color: #5f5f8c;
+    border-color: #5f5f8c;
+    color: #fff;
+  }
+  
+  .btn-success {
+    background-color: var(--futuristic-success);
+    border-color: var(--futuristic-success);
+    color: #000; /* Black text on bright green */
+  }
+  .btn-success:hover {
+    background-color: #00e68a;
+    border-color: #00e68a;
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 255, 156, 0.5);
+  }
+  
+  .btn-danger {
+    background-color: var(--futuristic-danger);
+    border-color: var(--futuristic-danger);
+    color: #fff;
+  }
+  .btn-danger:hover {
+    background-color: #ff335a;
+    border-color: #ff335a;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 77, 109, 0.5);
+  }
+  
+  .btn-warning {
+    background-color: var(--futuristic-warning);
+    border-color: var(--futuristic-warning);
+    color: #111;
+  }
+  .btn-warning:hover {
+    background-color: #ffe000;
+    border-color: #ffe000;
+    color: #111;
+    box-shadow: 0 0 15px rgba(255, 235, 59, 0.5);
+  }
+  
+  .btn-info {
+    background-color: var(--futuristic-info);
+    border-color: var(--futuristic-info);
+    color: #fff;
+  }
+  .btn-info:hover {
+    background-color: #0b8bf0;
+    border-color: #0b8bf0;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+  }
+  
+  .btn-outline-secondary {
+      border-color: var(--futuristic-border);
+      color: var(--futuristic-text-muted);
+  }
+  .btn-outline-secondary:hover {
+      background-color: var(--futuristic-border);
+      color: var(--futuristic-text);
+  }
+  
+  /*------------------------------------*\
+      Footer
+  \*------------------------------------*/
+  .futuristic-footer {
+    background-color: var(--futuristic-bg-secondary);
+    color: var(--futuristic-text-muted);
+    border-top: 1px solid var(--futuristic-border);
+    font-size: 0.9rem;
+  }
+  
+  /*------------------------------------*\
+      Alerts / Flash Messages
+  \*------------------------------------*/
+  .alert {
+      border-radius: 4px;
+      border-width: 0; /* Remove default border */
+      font-weight: 500;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem; /* Ensure spacing below alert */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .alert-primary { background-color: rgba(10, 239, 255, 0.2); color: var(--futuristic-primary); }
+  .alert-secondary { background-color: rgba(111, 66, 193, 0.2); color: #bf9df0; } /* Bootstrap purple */
+  .alert-success { background-color: rgba(0, 255, 156, 0.15); color: var(--futuristic-success); }
+  .alert-danger { background-color: rgba(255, 77, 109, 0.15); color: var(--futuristic-danger); }
+  .alert-warning { background-color: rgba(255, 235, 59, 0.15); color: var(--futuristic-warning); }
+  .alert-info { background-color: rgba(33, 150, 243, 0.15); color: var(--futuristic-info); }
+  .alert-light { background-color: rgba(224, 224, 224, 0.2); color: var(--futuristic-text); }
+  .alert-dark { background-color: rgba(50, 50, 80, 0.5); color: var(--futuristic-text-muted); border: 1px solid var(--futuristic-border); }
+  
+  .alert .btn-close {
+      filter: invert(1) grayscale(100%) brightness(200%); /* Make close button white */
+  }
+  
+  /*------------------------------------*\
+      Password Display/Controls
+  \*------------------------------------*/
+  .password-revealed {
+      background-color: rgba(255, 235, 59, 0.1); /* Subtle yellow background */
+      color: var(--futuristic-warning); /* Yellow text */
+      border: 1px solid rgba(255, 235, 59, 0.3);
+      font-family: monospace;
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+  }
