@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: aqv_web_app
+    env_file:
+      - .env # Load environment variables from .env file
+    ports:
+      - "5000:5000" # Map host port 5000 to container port 5000
+    # Optional: Add volumes for development if needed, but not for production image
+    # volumes:
+    #   - .:/app
+    restart: unless-stopped # Or 'always'
+
+# Optional: Define networks or volumes if needed later
+# networks:
+#   app-network:
+#     driver: bridge
+# volumes:
+#   mongo-data:
