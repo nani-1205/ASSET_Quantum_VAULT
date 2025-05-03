@@ -1,5 +1,8 @@
 import os
 from dotenv import load_dotenv
+# --- Added Import ---
+from urllib.parse import quote_plus
+# --- End Import ---
 
 # Get the absolute path of the directory the config.py file is in (app directory)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -37,13 +40,37 @@ class Config:
     # Provide a default only as a last resort for basic running, but it's insecure
     SECRET_KEY = SECRET_KEY or 'default-insecure-key-set-in-env'
 
+    # --- MongoDB Configuration with URL Encoding ---
     MONGO_USERNAME = os.environ.get('MONGO_USERNAME')
     MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD')
     MONGO_HOST = os.environ.get('MONGO_HOST', 'localhost')
     MONGO_PORT = int(os.environ.get('MONGO_PORT', 27017))
     MONGO_DB_NAME = os.environ.get('MONGO_DB_NAME', 'asset_quantum_vault')
     MONGO_AUTH_DB = os.environ.get('MONGO_AUTH_DB', 'admin')
-    MONGO_URI = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}?authSource={MONGO_AUTH_DB}"
+
+    # Check if credentials exist before encoding
+    if not MONGO_USERNAME or not MONGO_PASSWORD:
+         print("--- [config.py] WARNING: MONGO_USERNAME or MONGO_PASSWORD not found in environment. Connection might fail.")
+         # Decide how to handle this: proceed, raise error, use default URI?
+         # Proceeding for now, connection will likely fail later if auth is required.
+         encoded_username = ''
+         encoded_password = ''
+    else:
+        # Encode username and password using quote_plus
+        encoded_username = quote_plus(MONGO_USERNAME)
+        encoded_password = quote_plus(MONGO_PASSWORD)
+        print(f"--- [config.py] Original MongoDB Username: {MONGO_USERNAME}")
+        print(f"--- [config.py] Encoded MongoDB Username: {encoded_username}")
+        print(f"--- [config.py] Original MongoDB Password: {'*' * len(MONGO_PASSWORD)}")
+        print(f"--- [config.py] Encoded MongoDB Password: {'*' * len(encoded_password)}") # Don't log encoded password
+
+    # Construct the MongoDB URI using the encoded credentials
+    MONGO_URI = f"mongodb://{encoded_username}:{encoded_password}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}?authSource={MONGO_AUTH_DB}"
+    # Print URI safely without password
+    safe_mongo_uri_log = f"mongodb://{encoded_username}:******@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}?authSource={MONGO_AUTH_DB}"
+    print(f"--- [config.py] Constructed MONGO_URI (password hidden): {safe_mongo_uri_log}")
+    # --- End MongoDB Configuration ---
+
 
     # --- Debug: Retrieve ENCRYPTION_KEY and print its value before checking ---
     ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY')
