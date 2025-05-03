@@ -4,18 +4,30 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h2 class="futuristic-page-title mb-0">Manage Servers</h2>
         <div>
-            {# Use btn-success based on CSS #}
             <a href="{{ url_for('admin.add_server_route') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Add New Server
             </a>
         </div>
     </div>
 
+    {# --- SEARCH FORM --- #}
+    <form method="GET" action="{{ url_for('admin.view_servers') }}" class="mb-4">
+        <div class="input-group">
+            <input type="search" class="form-control" placeholder="Search Servers (Name, IP, Login As, Notes...)"
+                   name="search" value="{{ search_query | default('', true) }}"> {# Keep search term #}
+            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-search"></i> Search</button>
+             {# Optional Clear Button #}
+             {% if search_query %}
+                <a href="{{ url_for('admin.view_servers') }}" class="btn btn-outline-secondary" title="Clear Search"><i class="fas fa-times"></i> Clear</a>
+             {% endif %}
+        </div>
+    </form>
+    {# --- END SEARCH FORM --- #}
+
     {% if servers %}
     <div class="table-responsive futuristic-table-container">
-        {# Added table-dark and futuristic-table classes #}
         <table class="table table-dark table-striped table-hover align-middle futuristic-table">
-            <thead class="table-dark"> {# Keep table-dark for consistency with CSS overrides #}
+            <thead class="table-dark">
                 <tr>
                     <th>Server Name</th>
                     <th>IP/Hostname</th>
@@ -23,7 +35,7 @@
                     <th>Password</th>
                     <th>Notes</th>
                     <th>Last Updated</th>
-                    <th style="min-width: 120px;">Actions</th> {# Ensure enough space #}
+                    <th style="min-width: 120px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,7 +45,6 @@
                     <td>{{ server.ip_address if server.ip_address else 'N/A' }}</td>
                     <td>{{ server.login_as }}</td>
                     <td>
-                        {# Password display/reveal/copy buttons #}
                         <span class="password-display" data-item-id="{{ server._id }}" data-item-type="server">********</span>
                         <button type="button" class="btn btn-sm btn-outline-secondary ms-2 btn-reveal" data-item-id="{{ server._id }}" data-item-type="server" title="Reveal Password">
                             <i class="fas fa-eye"></i>
@@ -48,14 +59,11 @@
                      <td>
                         {{ server.last_updated.strftime('%Y-%m-%d %H:%M') if server.last_updated else 'N/A' }} <span class="text-muted">UTC</span>
                     </td>
-                    <td class="text-nowrap"> {# Prevent buttons wrapping #}
-                        {# Edit button uses btn-warning #}
+                    <td class="text-nowrap">
                         <a href="{{ url_for('admin.edit_server_route', server_id=server._id) }}" class="btn btn-sm btn-warning me-1" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
-                        {# Delete button uses btn-danger within its own form #}
                         <form action="{{ url_for('admin.delete_server_route', server_id=server._id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete the server \'{{ server.server_name }}\'? This action cannot be undone.');">
-                             {# --- CORRECT CSRF PLACEMENT for this form --- #}
                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                              <button type="submit" class="btn btn-sm btn-danger" title="Delete">
                                  <i class="fas fa-trash-alt"></i>
@@ -67,14 +75,19 @@
             </tbody>
         </table>
     </div>
+    {% elif search_query %}
+        {# Message specific to search results #}
+         <div class="alert alert-warning" role="alert">
+          No servers found matching your search term: "{{ search_query }}". <a href="{{ url_for('admin.view_servers') }}" class="alert-link">Clear search</a>?
+        </div>
     {% else %}
-        <div class="alert alert-info" role="alert"> {# Use info alert #}
+        {# Message when table is empty and no search was performed #}
+        <div class="alert alert-info" role="alert">
           No servers have been added yet. <a href="{{ url_for('admin.add_server_route') }}" class="alert-link">Add the first one!</a>
         </div>
     {% endif %}
 {% endblock %}
 
 {% block scripts %}
-    {# No page-specific scripts needed unless adding filtering/sorting later #}
     {# Ensure script.js containing reveal/copy logic is loaded via base.html #}
 {% endblock %}

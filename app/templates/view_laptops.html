@@ -16,7 +16,23 @@
         </div>
     </div>
 
+    {# --- SEARCH FORM --- #}
+    <form method="GET" action="{{ url_for('admin.view_laptops') }}" class="mb-4">
+        <div class="input-group">
+            <input type="search" class="form-control" placeholder="Search Laptops (ID, Brand, Employee, User, Notes...)"
+                   name="search" value="{{ search_query | default('', true) }}"> {# Keep search term #}
+            <button class="btn btn-outline-primary" type="submit"><i class="fas fa-search"></i> Search</button>
+             {# Optional Clear Button #}
+             {% if search_query %}
+                <a href="{{ url_for('admin.view_laptops') }}" class="btn btn-outline-secondary" title="Clear Search"><i class="fas fa-times"></i> Clear</a>
+             {% endif %}
+        </div>
+    </form>
+    {# --- END SEARCH FORM --- #}
+
+
     {% if laptops %}
+    {# Report generation form still wraps the table #}
     <form action="{{ url_for('admin.software_report') }}" method="POST" id="laptop-report-form">
          {{ csrf_token() }}
 
@@ -28,9 +44,7 @@
                             <input class="form-check-input" type="checkbox" id="select-all-laptops" title="Select/Deselect All">
                         </th>
                         <th>Laptop ID</th>
-                        {# --- NEW COLUMN HEADER --- #}
                         <th>Brand</th>
-                        {# --- END --- #}
                         <th>Employee Name</th>
                         <th>Username</th>
                         <th>Password</th>
@@ -47,9 +61,7 @@
                             <input class="form-check-input laptop-select-checkbox" type="checkbox" name="selected_laptops" value="{{ laptop._id }}">
                         </td>
                         <td>{{ laptop.laptop_id }}</td>
-                         {# --- NEW COLUMN DATA --- #}
                         <td>{{ laptop.brand if laptop.brand else 'N/A' }}</td>
-                         {# --- END --- #}
                         <td>{{ laptop.employee_name }}</td>
                         <td>{{ laptop.username }}</td>
                         <td>
@@ -103,7 +115,13 @@
 
     </form>
 
+    {% elif search_query %}
+        {# Message specific to search results #}
+         <div class="alert alert-warning" role="alert">
+          No laptops found matching your search term: "{{ search_query }}". <a href="{{ url_for('admin.view_laptops') }}" class="alert-link">Clear search</a>?
+        </div>
     {% else %}
+         {# Message when table is empty and no search was performed #}
          <div class="alert alert-info" role="alert">
           No laptops have been added yet. <a href="{{ url_for('admin.add_laptop_route') }}" class="alert-link">Add the first one!</a>
         </div>
@@ -141,22 +159,37 @@
 
              if (reportForm) {
                 reportForm.addEventListener('submit', function(event) {
-                    let anySelected = false;
-                    laptopCheckboxes.forEach(checkbox => {
-                        if (checkbox.checked) {
-                            anySelected = true;
-                        }
-                    });
+                    // Check which button triggered the submit
+                    const submitter = event.submitter;
+                    let isSelectedReportButton = false;
+                    if (submitter && submitter.type === 'submit' && (submitter.value === 'xlsx' || submitter.value === 'pdf')) {
+                        isSelectedReportButton = true;
+                    }
 
-                    if (!anySelected) {
-                        event.preventDefault(); // Stop form submission
-                        if (selectionWarning) {
-                             selectionWarning.style.display = 'inline';
+                    // Only validate selection if a "Generate Selected" button was clicked
+                    if (isSelectedReportButton) {
+                        let anySelected = false;
+                        laptopCheckboxes.forEach(checkbox => {
+                            if (checkbox.checked) {
+                                anySelected = true;
+                            }
+                        });
+
+                        if (!anySelected) {
+                            event.preventDefault(); // Stop form submission
+                            if (selectionWarning) {
+                                selectionWarning.style.display = 'inline';
+                            }
+                            setTimeout(() => {
+                                if (selectionWarning) selectionWarning.style.display = 'none';
+                            }, 3000);
+                        } else {
+                            if (selectionWarning) {
+                                selectionWarning.style.display = 'none';
+                            }
                         }
-                        setTimeout(() => {
-                            if (selectionWarning) selectionWarning.style.display = 'none';
-                        }, 3000);
                     } else {
+                        // Allow form submission if triggered by other means (if any added later)
                          if (selectionWarning) {
                              selectionWarning.style.display = 'none';
                          }

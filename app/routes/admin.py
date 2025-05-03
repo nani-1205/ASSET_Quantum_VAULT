@@ -1,15 +1,13 @@
 import traceback
+# --- Make sure request is imported ---
 from flask import request, Blueprint, render_template, redirect, url_for, flash, abort, send_file, make_response
+# --- End Import Check ---
 from flask_login import login_required, current_user
-# --- Make sure LaptopForm is imported ---
 from ..forms import ServerForm, LaptopForm, TemporaryAccessForm
-# --- END ---
 from ..models import (
     User, add_server, get_all_servers, get_server_by_id, update_server, delete_server,
-    # --- Ensure Laptop models are imported ---
     add_laptop, get_all_laptops, get_laptop_by_id, update_laptop, delete_laptop,
     get_laptops_by_ids
-    # --- END ---
 )
 from ..utils import admin_required, generate_xlsx_report, generate_pdf_report, temp_admin_check
 from datetime import datetime, timezone, timedelta
@@ -38,10 +36,20 @@ def admin_dashboard():
     return render_template('admin_dashboard.html', title='Admin Dashboard', servers=servers, laptops=laptops)
 
 # --- Server Management ---
+# --- MODIFIED view_servers ---
 @admin_bp.route('/servers')
 def view_servers():
-    servers = get_all_servers()
-    return render_template('view_servers.html', title='View Servers', servers=servers)
+    # Get search query from URL parameters (e.g., /servers?search=web)
+    search_query = request.args.get('search', '').strip() # Get query, default to empty, strip whitespace
+    print(f"--- [admin.py] Viewing servers with search: '{search_query}'") # Debug
+    try:
+        servers = get_all_servers(search_query=search_query)
+    except Exception as e:
+        print(f"--- [admin.py] ERROR searching servers: {e}")
+        flash("An error occurred while searching servers.", "danger")
+        servers = [] # Return empty list on error
+    # Pass the search query back to the template to keep it in the input box
+    return render_template('view_servers.html', title='View Servers', servers=servers, search_query=search_query)
 
 @admin_bp.route('/servers/add', methods=['GET', 'POST'])
 def add_server_route():
@@ -112,10 +120,21 @@ def delete_server_route(server_id):
 
 
 # --- Laptop Management ---
+# --- MODIFIED view_laptops ---
 @admin_bp.route('/laptops')
 def view_laptops():
-    laptops = get_all_laptops()
-    return render_template('view_laptops.html', title='View Laptops', laptops=laptops)
+    # Get search query from URL parameters
+    search_query = request.args.get('search', '').strip()
+    print(f"--- [admin.py] Viewing laptops with search: '{search_query}'") # Debug
+    try:
+        laptops = get_all_laptops(search_query=search_query)
+    except Exception as e:
+        print(f"--- [admin.py] ERROR searching laptops: {e}")
+        flash("An error occurred while searching laptops.", "danger")
+        laptops = [] # Return empty list on error
+    # Pass the search query back to the template
+    return render_template('view_laptops.html', title='View Laptops', laptops=laptops, search_query=search_query)
+
 
 @admin_bp.route('/laptops/add', methods=['GET', 'POST'])
 def add_laptop_route():
@@ -126,10 +145,7 @@ def add_laptop_route():
         print(f"--- [admin.py] Attempting to add laptop '{form.laptop_id.data}' by user {current_user.username}.")
         software_list = [s.strip() for s in form.installed_software.data.split(',') if s.strip()] if form.installed_software.data else []
         success = add_laptop(
-            laptop_id_str=form.laptop_id.data,
-            # --- PASS BRAND ---
-            brand=form.brand.data,
-            # --- END ---
+            laptop_id_str=form.laptop_id.data, brand=form.brand.data,
             employee_name=form.employee_name.data, username=form.username.data,
             password=form.password.data, installed_software=software_list,
             notes=form.notes.data, created_by_id=current_user.id
@@ -167,10 +183,7 @@ def edit_laptop_route(laptop_id):
         else:
             software_list = [s.strip() for s in form.installed_software.data.split(',') if s.strip()] if form.installed_software.data else []
             update_data = {
-                'laptop_id': form.laptop_id.data,
-                # --- INCLUDE BRAND IN UPDATE DATA ---
-                'brand': form.brand.data,
-                # --- END ---
+                'laptop_id': form.laptop_id.data, 'brand': form.brand.data,
                 'employee_name': form.employee_name.data, 'username': form.username.data,
                 'installed_software': software_list, 'notes': form.notes.data,
             }
@@ -252,14 +265,17 @@ def revoke_temporary_access(user_id):
     return redirect(url_for('admin.temporary_access'))
 
 
-# --- UPDATED Reporting Route ---
+# --- Reporting Route ---
 @admin_bp.route('/report/software', methods=['GET', 'POST'])
 def software_report():
     laptops_data = []
     report_format = 'xlsx'
+    report_scope = "all" # Default scope
+
     if request.method == 'POST':
         selected_ids = request.form.getlist('selected_laptops')
         report_format = request.form.get('report_format', 'xlsx').lower()
+        report_scope = "selected"
         print(f"--- [admin.py] Report requested for format: {report_format}")
         print(f"--- [admin.py] Selected laptop IDs: {selected_ids}")
         if not selected_ids:
@@ -270,15 +286,19 @@ def software_report():
     else: # GET Request
         report_format = request.args.get('format', 'xlsx').lower()
         print(f"--- [admin.py] Report requested for ALL laptops, format: {report_format}")
-        laptops_data = get_all_laptops()
+        laptops_data = get_all_laptops() # No search query needed here, get all for the report
         report_title = f"Laptop Software Report (All {len(laptops_data)})"
+
     if not laptops_data:
         flash('No laptop data found for the report criteria.', 'warning')
-        if request.method == 'POST': return redirect(url_for('admin.view_laptops'))
+        if report_scope == 'selected': return redirect(url_for('admin.view_laptops'))
         else: return redirect(url_for('admin.admin_dashboard'))
+
     try:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        base_filename = f"Laptop_Software_{timestamp}"
+        scope_tag = "All" if report_scope == "all" else "Selected"
+        base_filename = f"Laptop_Software_{scope_tag}_{timestamp}"
+
         if report_format == 'xlsx':
             buffer = generate_xlsx_report(laptops_data)
             filename = f"{base_filename}.xlsx"
@@ -289,18 +309,19 @@ def software_report():
             mimetype = "application/pdf"
         else:
             flash('Invalid report format requested.', 'danger')
-            if request.method == 'POST': return redirect(url_for('admin.view_laptops'))
+            if report_scope == 'selected': return redirect(url_for('admin.view_laptops'))
             else: return redirect(url_for('admin.admin_dashboard'))
+
         response = make_response(send_file(buffer, mimetype=mimetype, as_attachment=True, download_name=filename))
         return response
     except ImportError as e:
          print(f"--- [admin.py] Reporting library missing: {e}")
          flash(f"Reporting library not installed. Please install 'openpyxl' for XLSX or 'reportlab' for PDF. Error: {e}", "danger")
-         if request.method == 'POST': return redirect(url_for('admin.view_laptops'))
+         if report_scope == 'selected': return redirect(url_for('admin.view_laptops'))
          else: return redirect(url_for('admin.admin_dashboard'))
     except Exception as e:
         flash(f'An error occurred while generating the report: {e}', 'danger')
         print(f"--- [admin.py] Report generation error: {e}")
         traceback.print_exc()
-        if request.method == 'POST': return redirect(url_for('admin.view_laptops'))
+        if report_scope == 'selected': return redirect(url_for('admin.view_laptops'))
         else: return redirect(url_for('admin.admin_dashboard'))

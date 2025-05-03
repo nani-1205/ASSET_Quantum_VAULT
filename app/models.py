@@ -1,7 +1,10 @@
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from typing import Optional, List, Dict, Any # Import Optional and other useful types
+from typing import Optional, List, Dict, Any
+# --- Add re for regex escaping ---
+import re
+# --- End Add ---
 from .extensions import mongo
 from .utils import encrypt_string, decrypt_string
 from datetime import datetime, timezone
@@ -101,17 +104,36 @@ def add_server(server_name: str, ip_address: Optional[str], login_as: str, passw
         print(f"--- [models.py] ERROR: Failed to add server: {e}")
         return None
 
-def get_all_servers() -> List[VaultItem]:
+# --- MODIFIED get_all_servers ---
+def get_all_servers(search_query: Optional[str] = None) -> List[VaultItem]:
     servers: List[VaultItem] = []
+    query_filter = {} # Start with an empty filter
+
+    if search_query:
+        # Escape special regex characters in user input for safety
+        escaped_query = re.escape(search_query)
+        # Create a case-insensitive regex search filter
+        # Search in relevant fields: server_name, ip_address, login_as, notes (optional)
+        query_filter = {
+            '$or': [
+                {'server_name': {'$regex': escaped_query, '$options': 'i'}},
+                {'ip_address': {'$regex': escaped_query, '$options': 'i'}},
+                {'login_as': {'$regex': escaped_query, '$options': 'i'}},
+                {'notes': {'$regex': escaped_query, '$options': 'i'}}
+            ]
+        }
+        print(f"--- [models.py] Server search filter: {query_filter}") # Debug
+
     try:
-        servers_cursor = mongo.db.servers.find()
+        # Apply the filter (empty {} if no search query)
+        servers_cursor = mongo.db.servers.find(query_filter)
         for server in servers_cursor:
             server['_id'] = str(server['_id'])
             created_by_obj = server.get('created_by')
             server['created_by'] = str(created_by_obj) if created_by_obj else None
             servers.append(server)
     except Exception as e:
-        print(f"--- [models.py] ERROR: Failed to get all servers: {e}")
+        print(f"--- [models.py] ERROR: Failed to get all servers (search='{search_query}'): {e}")
     return servers
 
 def get_server_by_id(server_id: str) -> Optional[VaultItem]:
@@ -158,18 +180,7 @@ def delete_server(server_id: str) -> bool:
         return False
 
 # -- Laptops --
-def add_laptop(
-    laptop_id_str: str,
-    # --- ADD brand PARAMETER ---
-    brand: Optional[str],
-    # --- END ---
-    employee_name: str,
-    username: str,
-    password: str,
-    installed_software: List[str],
-    notes: Optional[str],
-    created_by_id: str
-) -> Optional[ObjectId]:
+def add_laptop(laptop_id_str: str, brand: Optional[str], employee_name: str, username: str, password: str, installed_software: List[str], notes: Optional[str], created_by_id: str) -> Optional[ObjectId]:
     if not ObjectId.is_valid(created_by_id):
          print(f"--- [models.py] ERROR: Invalid created_by_id format '{created_by_id}' in add_laptop.")
          return None
@@ -178,14 +189,10 @@ def add_laptop(
         print("--- [models.py] ERROR: Failed to encrypt laptop password.")
         return None
     laptop_data = {
-        'laptop_id': laptop_id_str,
-        # --- ADD brand TO DATA ---
-        'brand': brand,
-        # --- END ---
-        'employee_name': employee_name, 'username': username,
-        'encrypted_password': encrypted_password, 'installed_software': installed_software,
-        'notes': notes, 'created_by': ObjectId(created_by_id),
-        'last_updated': datetime.now(timezone.utc)
+        'laptop_id': laptop_id_str, 'brand': brand, 'employee_name': employee_name,
+        'username': username, 'encrypted_password': encrypted_password,
+        'installed_software': installed_software, 'notes': notes,
+        'created_by': ObjectId(created_by_id), 'last_updated': datetime.now(timezone.utc)
     }
     try:
         result = mongo.db.laptops.insert_one(laptop_data)
@@ -194,17 +201,40 @@ def add_laptop(
         print(f"--- [models.py] ERROR: Failed to add laptop: {e}")
         return None
 
-def get_all_laptops() -> List[VaultItem]:
+# --- MODIFIED get_all_laptops ---
+def get_all_laptops(search_query: Optional[str] = None) -> List[VaultItem]:
     laptops: List[VaultItem] = []
+    query_filter = {} # Start with an empty filter
+
+    if search_query:
+        # Escape special regex characters in user input for safety
+        escaped_query = re.escape(search_query)
+        # Create a case-insensitive regex search filter
+        # Search in relevant fields: laptop_id, brand, employee_name, username, notes (optional)
+        query_filter = {
+            '$or': [
+                {'laptop_id': {'$regex': escaped_query, '$options': 'i'}},
+                {'brand': {'$regex': escaped_query, '$options': 'i'}},
+                {'employee_name': {'$regex': escaped_query, '$options': 'i'}},
+                {'username': {'$regex': escaped_query, '$options': 'i'}},
+                {'notes': {'$regex': escaped_query, '$options': 'i'}}
+                 # Note: Searching 'installed_software' (array) requires different handling if needed
+                 # Example: {'installed_software': {'$regex': escaped_query, '$options': 'i'}}
+                 # This searches if any element in the array matches the regex.
+            ]
+        }
+        print(f"--- [models.py] Laptop search filter: {query_filter}") # Debug
+
     try:
-        laptops_cursor = mongo.db.laptops.find()
+        # Apply the filter (empty {} if no search query)
+        laptops_cursor = mongo.db.laptops.find(query_filter)
         for laptop in laptops_cursor:
             laptop['_id'] = str(laptop['_id'])
             created_by_obj = laptop.get('created_by')
             laptop['created_by'] = str(created_by_obj) if created_by_obj else None
             laptops.append(laptop)
     except Exception as e:
-        print(f"--- [models.py] ERROR: Failed to get all laptops: {e}")
+        print(f"--- [models.py] ERROR: Failed to get all laptops (search='{search_query}'): {e}")
     return laptops
 
 def get_laptop_by_id(laptop_mongo_id: str) -> Optional[VaultItem]:
