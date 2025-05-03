@@ -1,5 +1,8 @@
 import os
 from flask import Flask, flash, redirect, url_for
+# --- Added Import ---
+from datetime import datetime, timezone
+# --- End Import ---
 # --- CORRECTED IMPORT BELOW ---
 from .config import Config  # Use relative import because config.py is in the same package
 # --- END CORRECTION ---
@@ -11,6 +14,15 @@ from pymongo.errors import ConnectionFailure, OperationFailure
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # --- Context Processor to Inject Year ---
+    @app.context_processor
+    def inject_current_year():
+        """Injects the current year into all templates."""
+        # Use timezone.utc to ensure consistency regardless of server timezone
+        return {'current_year': datetime.now(timezone.utc).year}
+    # --- End Context Processor ---
+
 
     # Initialize Flask extensions
     mongo.init_app(app)
