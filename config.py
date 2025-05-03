@@ -1,13 +1,40 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# Get the absolute path of the directory the config.py file is in (i.e., /root/ASSET_Quantum_VAULT/app)
 basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, '../.env')) # Adjust path if needed
+
+# Construct the absolute path to the .env file, assuming it's one level above the 'app' directory
+dotenv_path = os.path.join(basedir, '../.env')
+
+# --- Debug: Print the path being checked for .env ---
+print(f"--- [config.py] Attempting to load .env file from: {dotenv_path}")
+
+# Load environment variables from the specified .env file path
+# verbose=True will print debugging information from python-dotenv itself
+# override=True might be useful if variables are potentially set elsewhere, but usually not needed here.
+loaded = load_dotenv(dotenv_path=dotenv_path, verbose=True)
+
+# --- Debug: Print whether dotenv reported successful loading ---
+if loaded:
+    print(f"--- [config.py] python-dotenv reported successfully loading '{dotenv_path}'.")
+else:
+    print(f"--- [config.py] WARNING: python-dotenv reported that it did NOT load '{dotenv_path}'. Check permissions and path.")
+    # Optional: Check if the file even exists
+    if not os.path.exists(dotenv_path):
+        print(f"--- [config.py] CRITICAL: The file '{dotenv_path}' does not exist.")
+
 
 class Config:
     """Base configuration."""
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+    # --- Debug: Retrieve SECRET_KEY and print its value ---
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    print(f"--- [config.py] SECRET_KEY from env: {'*' * len(SECRET_KEY) if SECRET_KEY else 'Not Found'}") # Avoid logging the actual key
+    if not SECRET_KEY:
+        print("--- [config.py] WARNING: SECRET_KEY not found in environment.")
+    # Provide a default only as a last resort for basic running, but it's insecure
+    SECRET_KEY = SECRET_KEY or 'default-insecure-key-set-in-env'
+
     MONGO_USERNAME = os.environ.get('MONGO_USERNAME')
     MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD')
     MONGO_HOST = os.environ.get('MONGO_HOST', 'localhost')
@@ -16,15 +43,30 @@ class Config:
     MONGO_AUTH_DB = os.environ.get('MONGO_AUTH_DB', 'admin')
     MONGO_URI = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB_NAME}?authSource={MONGO_AUTH_DB}"
 
-    # Encryption Key - Load securely!
+    # --- Debug: Retrieve ENCRYPTION_KEY and print its value before checking ---
     ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY')
+    print(f"--- [config.py] ENCRYPTION_KEY from env: {'*' * len(ENCRYPTION_KEY) if ENCRYPTION_KEY else 'Not Found'}") # Avoid logging the actual key
+
+    # Check if ENCRYPTION_KEY was successfully loaded
     if not ENCRYPTION_KEY:
-        raise ValueError("No ENCRYPTION_KEY set for Flask application. Please set it in .env or environment variables.")
-    ENCRYPTION_KEY_BYTES = ENCRYPTION_KEY.encode() # Fernet needs bytes
+        print("--- [config.py] CRITICAL: ENCRYPTION_KEY not found in environment variables after attempting to load .env.")
+        raise ValueError("No ENCRYPTION_KEY set for Flask application. Please check .env file path, permissions, and content.")
+
+    # Ensure the key is bytes for Fernet
+    try:
+        ENCRYPTION_KEY_BYTES = ENCRYPTION_KEY.encode('utf-8')
+        print(f"--- [config.py] ENCRYPTION_KEY successfully encoded to bytes.")
+    except Exception as e:
+         print(f"--- [config.py] CRITICAL: Failed to encode ENCRYPTION_KEY to bytes: {e}")
+         raise ValueError(f"Invalid ENCRYPTION_KEY format: {e}")
+
 
     # Initial Admin Credentials (used only if DB is empty)
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'changeme') # Change this default
+    # --- Debug: Print admin username being used ---
+    print(f"--- [config.py] Initial ADMIN_USERNAME: {ADMIN_USERNAME}")
+
 
     # Flask-WTF CSRF Protection
     WTF_CSRF_ENABLED = True
