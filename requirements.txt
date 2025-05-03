@@ -8,4 +8,4 @@ cryptography # For strong encryption
 openpyxl    # For XLSX reports
 reportlab   # For PDF reports
 email-validator # Required by Flask-WTF for Email() validator
-Flask-PyMongo
+Flask-PyMongo # For MongoDB integration
