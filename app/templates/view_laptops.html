@@ -1,75 +1,114 @@
 {% extends "base.html" %}
 
 {% block content %}
-     <div class="d-flex justify-content-between align-items-center mb-3">
+     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"> {# Added flex-wrap and gap #}
         <h2>Manage Laptops</h2>
-        <a href="{{ url_for('admin.add_laptop_route') }}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Add New Laptop
-        </a>
+        <div>
+             {# Keep link for adding new laptop #}
+             <a href="{{ url_for('admin.add_laptop_route') }}" class="btn btn-success mb-1 mb-md-0"> {# Added margin bottom for smaller screens #}
+                <i class="fas fa-plus"></i> Add New Laptop
+             </a>
+             {# Buttons for generating report for ALL laptops directly from here #}
+             <a href="{{ url_for('admin.software_report', format='xlsx') }}" class="btn btn-info ms-md-2 mb-1 mb-md-0" title="Generate XLSX report for ALL laptops"> {# Added margin bottom #}
+                 <i class="fas fa-file-excel"></i> All (XLSX)
+             </a>
+              <a href="{{ url_for('admin.software_report', format='pdf') }}" class="btn btn-info ms-1 mb-1 mb-md-0" title="Generate PDF report for ALL laptops"> {# Added margin bottom #}
+                 <i class="fas fa-file-pdf"></i> All (PDF)
+             </a>
+        </div>
     </div>
 
     {% if laptops %}
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>Laptop ID</th>
-                    <th>Employee Name</th>
-                    <th>Username</th>
-                    <th>Password</th>
-                    <th>Installed Software</th>
-                    <th>Notes</th>
-                    <th>Last Updated</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for laptop in laptops %}
-                <tr id="row-laptop-{{ laptop._id }}">
-                    <td>{{ laptop.laptop_id }}</td>
-                    <td>{{ laptop.employee_name }}</td>
-                    <td>{{ laptop.username }}</td>
-                    <td>
-                        {# Password display/reveal/copy buttons #}
-                        <span class="password-display" data-item-id="{{ laptop._id }}" data-item-type="laptop">********</span>
-                        <button class="btn btn-sm btn-outline-secondary ms-2 btn-reveal" data-item-id="{{ laptop._id }}" data-item-type="laptop" title="Reveal Password">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary ms-1 btn-copy" data-item-id="{{ laptop._id }}" data-item-type="laptop" title="Copy Password">
-                             <i class="fas fa-copy"></i>
-                        </button>
-                    </td>
-                    <td title="{{ laptop.installed_software|join(', ') if laptop.installed_software else 'None listed' }}">
-                        {# Display first few items or count #}
-                        {% if laptop.installed_software %}
-                            {{ laptop.installed_software[:3]|join(', ') }}{% if laptop.installed_software|length > 3 %}... ({{ laptop.installed_software|length }}){% endif %}
-                        {% else %}
-                            None listed
-                        {% endif %}
-                    </td>
-                     <td title="{{ laptop.notes if laptop.notes else '' }}">
-                        {{ laptop.notes | truncate(30) if laptop.notes else '' }}
-                    </td>
-                    <td>
-                        {{ laptop.last_updated.strftime('%Y-%m-%d %H:%M') if laptop.last_updated else 'N/A' }} UTC
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin.edit_laptop_route', laptop_id=laptop._id) }}" class="btn btn-sm btn-warning me-1" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        {# Delete button using a small form for CSRF protection #}
-                        <form action="{{ url_for('admin.delete_laptop_route', laptop_id=laptop._id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete the laptop entry for \'{{ laptop.employee_name }}\' (ID: {{ laptop.laptop_id }})? This action cannot be undone.');">
-                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                             <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                 <i class="fas fa-trash-alt"></i>
-                             </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {# --- Wrap table in a form --- #}
+    <form action="{{ url_for('admin.software_report') }}" method="POST" id="laptop-report-form">
+         {{ csrf_token() }} {# Important for POST requests #}
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 3%;"> {# Reduced width for checkbox #}
+                            {# Checkbox for Select All/None #}
+                            <input class="form-check-input" type="checkbox" id="select-all-laptops" title="Select/Deselect All">
+                        </th>
+                        <th>Laptop ID</th>
+                        <th>Employee Name</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Installed Software</th>
+                        <th>Notes</th>
+                        <th>Last Updated</th>
+                        <th style="min-width: 120px;">Actions</th> {# Ensure enough space for buttons #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for laptop in laptops %}
+                    <tr id="row-laptop-{{ laptop._id }}">
+                        <td>
+                             {# Checkbox for each laptop #}
+                            <input class="form-check-input laptop-select-checkbox" type="checkbox" name="selected_laptops" value="{{ laptop._id }}">
+                        </td>
+                        <td>{{ laptop.laptop_id }}</td>
+                        <td>{{ laptop.employee_name }}</td>
+                        <td>{{ laptop.username }}</td>
+                        <td>
+                            {# Password display/reveal/copy buttons #}
+                            <span class="password-display" data-item-id="{{ laptop._id }}" data-item-type="laptop">********</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2 btn-reveal" data-item-id="{{ laptop._id }}" data-item-type="laptop" title="Reveal Password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 btn-copy" data-item-id="{{ laptop._id }}" data-item-type="laptop" title="Copy Password">
+                                 <i class="fas fa-copy"></i>
+                            </button>
+                        </td>
+                        <td title="{{ laptop.installed_software|join(', ') if laptop.installed_software else 'None listed' }}">
+                            {# Display first few items or count #}
+                            {% if laptop.installed_software %}
+                                {{ laptop.installed_software[:3]|join(', ') }}{% if laptop.installed_software|length > 3 %}... ({{ laptop.installed_software|length }}){% endif %}
+                            {% else %}
+                                None listed
+                            {% endif %}
+                        </td>
+                         <td title="{{ laptop.notes if laptop.notes else '' }}">
+                            {{ laptop.notes | truncate(30) if laptop.notes else '' }}
+                        </td>
+                        <td>
+                            {# Format datetime nicely #}
+                            {{ laptop.last_updated.strftime('%Y-%m-%d %H:%M') if laptop.last_updated else 'N/A' }} <span class="text-muted">UTC</span>
+                        </td>
+                        <td class="text-nowrap"> {# Prevent buttons wrapping #}
+                             {# Edit button remains a link #}
+                            <a href="{{ url_for('admin.edit_laptop_route', laptop_id=laptop._id) }}" class="btn btn-sm btn-warning me-1" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {# Delete button still uses its own mini-form #}
+                            <form action="{{ url_for('admin.delete_laptop_route', laptop_id=laptop._id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete the laptop entry for \'{{ laptop.employee_name }}\' (ID: {{ laptop.laptop_id }})? This action cannot be undone.');">
+                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                 <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                     <i class="fas fa-trash-alt"></i>
+                                 </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+         {# Buttons to generate report for SELECTED laptops #}
+         <div class="mt-3">
+             <button type="submit" class="btn btn-primary" name="report_format" value="xlsx" title="Generate XLSX report for selected laptops">
+                 <i class="fas fa-file-excel"></i> Generate Selected (XLSX)
+             </button>
+              <button type="submit" class="btn btn-primary ms-2" name="report_format" value="pdf" title="Generate PDF report for selected laptops">
+                 <i class="fas fa-file-pdf"></i> Generate Selected (PDF)
+             </button>
+             <span id="selection-warning" class="text-danger ms-3" style="display: none;">Please select at least one laptop.</span>
+         </div>
+
+    </form>
+    {# --- End Form --- #}
+
     {% else %}
          <div class="alert alert-info" role="alert">
           No laptops have been added yet. <a href="{{ url_for('admin.add_laptop_route') }}">Add the first one!</a>
@@ -78,5 +117,65 @@
 {% endblock %}
 
 {% block scripts %}
-    {# Ensure script.js containing reveal/copy logic is loaded via base.html #}
+    {# Add JavaScript for "Select All" checkbox functionality and submit validation #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('select-all-laptops');
+            const laptopCheckboxes = document.querySelectorAll('.laptop-select-checkbox');
+            const reportForm = document.getElementById('laptop-report-form');
+            const selectionWarning = document.getElementById('selection-warning');
+
+            // Select All functionality
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    laptopCheckboxes.forEach(checkbox => {
+                        checkbox.checked = selectAllCheckbox.checked;
+                    });
+                });
+            }
+
+            // Uncheck "Select All" if any individual box is unchecked
+            laptopCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!checkbox.checked) {
+                        selectAllCheckbox.checked = false;
+                    }
+                    // Optional: check if all are checked to re-check "Select All"
+                    let allChecked = true;
+                    laptopCheckboxes.forEach(cb => { if (!cb.checked) allChecked = false; });
+                    if (allChecked && laptopCheckboxes.length > 0) { // Prevent checking if empty
+                         selectAllCheckbox.checked = true;
+                    }
+                });
+            });
+
+            // Prevent submitting form if no laptops are selected
+             if (reportForm) {
+                reportForm.addEventListener('submit', function(event) {
+                    let anySelected = false;
+                    laptopCheckboxes.forEach(checkbox => {
+                        if (checkbox.checked) {
+                            anySelected = true;
+                        }
+                    });
+
+                    if (!anySelected) {
+                        event.preventDefault(); // Stop form submission
+                        if (selectionWarning) {
+                             selectionWarning.style.display = 'inline'; // Show warning
+                        }
+                        // Optionally hide warning after a delay
+                        setTimeout(() => {
+                            if (selectionWarning) selectionWarning.style.display = 'none';
+                        }, 3000);
+                    } else {
+                         if (selectionWarning) {
+                             selectionWarning.style.display = 'none'; // Hide warning if selection is ok
+                         }
+                    }
+                });
+            }
+
+        });
+    </script>
 {% endblock %}

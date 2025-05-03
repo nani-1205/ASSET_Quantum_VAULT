@@ -1,4 +1,4 @@
-from bson import ObjectId
+from bson import ObjectId, InvalidId # Make sure InvalidId is imported
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 # --- Added Import ---
@@ -212,7 +212,7 @@ def get_all_laptops() -> List[VaultItem]:
         print(f"--- [models.py] ERROR: Failed to get all laptops: {e}")
     return laptops
 
-def get_laptop_by_id(laptop_mongo_id: str) -> Optional[VaultItem]: # Changed return type hint
+def get_laptop_by_id(laptop_mongo_id: str) -> Optional[VaultItem]:
     try:
         if not ObjectId.is_valid(laptop_mongo_id): return None
         laptop = mongo.db.laptops.find_one({'_id': ObjectId(laptop_mongo_id)})
@@ -223,6 +223,36 @@ def get_laptop_by_id(laptop_mongo_id: str) -> Optional[VaultItem]: # Changed ret
     except Exception as e:
         print(f"--- [models.py] ERROR: Failed to get laptop by ID {laptop_mongo_id}: {e}")
         return None
+
+# --- NEW FUNCTION ---
+def get_laptops_by_ids(laptop_ids: List[str]) -> List[VaultItem]:
+    """Fetches laptop data for a specific list of MongoDB _ids."""
+    laptops: List[VaultItem] = []
+    if not laptop_ids:
+        return laptops # Return empty list if no IDs provided
+
+    object_ids = []
+    # Convert string IDs to ObjectIds, filtering out invalid ones
+    for laptop_id in laptop_ids:
+        if ObjectId.is_valid(laptop_id):
+            object_ids.append(ObjectId(laptop_id))
+        else:
+            print(f"--- [models.py] Warning: Invalid laptop ID format skipped: {laptop_id}")
+
+    if not object_ids:
+        return laptops # Return empty list if no valid IDs remain
+
+    try:
+        # Use the $in operator to find documents matching any ID in the list
+        laptops_cursor = mongo.db.laptops.find({'_id': {'$in': object_ids}})
+        for laptop in laptops_cursor:
+            laptop['_id'] = str(laptop['_id'])
+            laptop['created_by'] = str(laptop.get('created_by'))
+            laptops.append(laptop)
+    except Exception as e:
+        print(f"--- [models.py] ERROR: Failed to get laptops by IDs: {e}")
+    return laptops
+# --- END NEW FUNCTION ---
 
 def update_laptop(laptop_mongo_id: str, update_data: Dict[str, Any]) -> bool:
     if 'password' in update_data and update_data['password']:
@@ -272,6 +302,9 @@ def delete_laptop(laptop_mongo_id: str) -> bool:
 
 # -- Personal Passwords --
 def add_personal_password(user_id: str, website: str, username: str, password: str, notes: Optional[str]) -> Optional[ObjectId]:
+    if not ObjectId.is_valid(user_id):
+         print(f"--- [models.py] ERROR: Invalid user_id format '{user_id}' in add_personal_password.")
+         return None
     encrypted_password = encrypt_string(password)
     if not encrypted_password:
         print("--- [models.py] ERROR: Failed to encrypt personal password.")
@@ -304,7 +337,7 @@ def get_personal_passwords_for_user(user_id: str) -> List[VaultItem]:
         print(f"--- [models.py] ERROR: Failed to get personal passwords for user {user_id}: {e}")
     return passwords
 
-def get_personal_password_by_id(password_id: str, user_id: str) -> Optional[VaultItem]: # Changed return type hint
+def get_personal_password_by_id(password_id: str, user_id: str) -> Optional[VaultItem]:
     try:
         if not ObjectId.is_valid(password_id) or not ObjectId.is_valid(user_id): return None
         pw = mongo.db.personal_passwords.find_one({
