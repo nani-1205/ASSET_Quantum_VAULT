@@ -205,7 +205,7 @@
   .table thead.table-dark th { /* Target thead th within table-dark explicitly */
     font-family: var(--font-heading);
     font-weight: 600;
-    /* --- CORRECTED COLOR --- */
+    /* --- CONFIRMED COLOR --- */
     color: var(--futuristic-text); /* Brighter text for header */
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -285,26 +285,34 @@
     border: 1px solid transparent;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
+  /* Ensure small buttons inherit font */
+  .btn-sm {
+      font-family: var(--font-heading);
+      font-weight: 600;
+  }
   .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   }
   .btn i { /* Add margin to icons inside buttons */
       margin-right: 0.4rem;
-      /* Prevent icon from inheriting potentially different text color */
-      color: inherit !important;
+      color: inherit !important; /* Prevent icon color issues */
+  }
+  /* Fix for icons in small buttons */
+  .btn-sm i {
+      margin-right: 0rem; /* No margin needed for just icon */
   }
   
   .btn-primary {
     background-color: var(--futuristic-primary);
     border-color: var(--futuristic-primary);
-    /* --- CORRECTED COLOR --- */
+    /* --- CONFIRMED COLOR --- */
     color: #111; /* Dark text for better contrast on cyan */
   }
   .btn-primary:hover {
     background-color: var(--futuristic-primary-darker);
     border-color: var(--futuristic-primary-darker);
-    /* --- CORRECTED COLOR --- */
+    /* --- CONFIRMED COLOR --- */
     color: #000; /* Keep dark text */
     box-shadow: 0 0 15px rgba(10, 239, 255, 0.5);
   }
@@ -323,13 +331,13 @@
   .btn-success {
     background-color: var(--futuristic-success);
     border-color: var(--futuristic-success);
-     /* --- CORRECTED COLOR --- */
+     /* --- CONFIRMED COLOR --- */
     color: #000; /* Dark text for contrast on neon green */
   }
   .btn-success:hover {
     background-color: #00e68a;
     border-color: #00e68a;
-     /* --- CORRECTED COLOR --- */
+     /* --- CONFIRMED COLOR --- */
     color: #000;
     box-shadow: 0 0 15px rgba(0, 255, 156, 0.5);
   }
