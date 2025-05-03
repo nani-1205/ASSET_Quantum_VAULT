@@ -30,7 +30,7 @@ class SignupForm(FlaskForm):
 # --- Vault Item Forms ---
 class ServerForm(FlaskForm):
     server_name = StringField('Server Name/Identifier', validators=[DataRequired(), Length(max=100)])
-    ip_address = StringField('IP Address/Hostname', validators=[Optional(), Length(max=100)])
+    ip_address = StringField('IP Address/Hostname', validators=[Optional(), Length(max=100)]) # Optional allows it to be blank
     login_as = StringField('Login As (Username)', validators=[DataRequired(), Length(max=100)])
     password = PasswordField('Password', validators=[
         Optional(), # Optional only on edit, required on add (handle in view)
@@ -45,6 +45,9 @@ class ServerForm(FlaskForm):
 
 class LaptopForm(FlaskForm):
     laptop_id = StringField('Laptop ID / Asset Tag', validators=[DataRequired(), Length(max=100)])
+    # --- NEW FIELD ---
+    brand = StringField('Brand', validators=[Optional(), Length(max=100)])
+    # --- END NEW FIELD ---
     employee_name = StringField('Employee Name', validators=[DataRequired(), Length(max=100)])
     username = StringField('Laptop Login Username', validators=[DataRequired(), Length(max=100)])
     password = PasswordField('Password', validators=[

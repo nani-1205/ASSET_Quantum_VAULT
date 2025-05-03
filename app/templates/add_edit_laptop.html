@@ -1,47 +1,59 @@
 {% extends "base.html" %}
-{% from "_formhelpers.html" import render_field %} {# Optional macro #}
+{# Import macro if you use it, otherwise use verbose fields #}
+{% from "_formhelpers.html" import render_field %}
 
 {% block content %}
-    <h2>{{ title }}</h2> {# e.g., "Add Laptop" or "Edit Laptop" #}
+    <h2 class="futuristic-page-title">{{ title }}</h2> {# Uses futuristic heading style #}
 
-    {# Using verbose fields without macro for clarity #}
-     <form method="POST" action="{{ form_action }}"> {# form_action URL passed from route #}
+     <form method="POST" action="{{ form_action }}">
         {{ form.hidden_tag() }} {# CSRF token #}
 
-        <div class="mb-3">
-            {{ form.laptop_id.label(class="form-label") }}
-            {{ form.laptop_id(class="form-control" + (" is-invalid" if form.laptop_id.errors else ""), placeholder="e.g., ASSET-12345, LT-JSMITH") }}
-            {% if form.laptop_id.errors %}<div class="invalid-feedback">{% for error in form.laptop_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+        {# Using rows and columns for better layout #}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.laptop_id.label(class="form-label") }}
+                {{ form.laptop_id(class="form-control" + (" is-invalid" if form.laptop_id.errors else ""), placeholder="e.g., ASSET-12345, LT-JSMITH") }}
+                {% if form.laptop_id.errors %}<div class="invalid-feedback">{% for error in form.laptop_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+            </div>
+             {# --- NEW BRAND FIELD --- #}
+            <div class="col-md-6 mb-3">
+                {{ form.brand.label(class="form-label") }}
+                {{ form.brand(class="form-control" + (" is-invalid" if form.brand.errors else ""), placeholder="e.g., Dell, HP, Apple, Lenovo") }}
+                {% if form.brand.errors %}<div class="invalid-feedback">{% for error in form.brand.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+            </div>
+             {# --- END BRAND FIELD --- #}
         </div>
 
-         <div class="mb-3">
-            {{ form.employee_name.label(class="form-label") }}
-            {{ form.employee_name(class="form-control" + (" is-invalid" if form.employee_name.errors else ""), placeholder="e.g., John Smith") }}
-            {% if form.employee_name.errors %}<div class="invalid-feedback">{% for error in form.employee_name.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+         <div class="row">
+             <div class="col-md-6 mb-3">
+                {{ form.employee_name.label(class="form-label") }}
+                {{ form.employee_name(class="form-control" + (" is-invalid" if form.employee_name.errors else ""), placeholder="e.g., John Smith") }}
+                {% if form.employee_name.errors %}<div class="invalid-feedback">{% for error in form.employee_name.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="e.g., jsmith, john.smith") }}
+                 {% if form.username.errors %}<div class="invalid-feedback">{% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+           </div>
         </div>
 
-        <div class="mb-3">
-            {{ form.username.label(class="form-label") }}
-            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="e.g., jsmith, john.smith") }}
-             {% if form.username.errors %}<div class="invalid-feedback">{% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
-       </div>
-
-        <div class="mb-3">
-             {# Add note about password being optional on edit #}
-             {% if 'Edit' in title %}
-                <label class="form-label" for="password">{{ form.password.label.text }} (Leave blank to keep current password)</label>
-            {% else %}
-                 {{ form.password.label(class="form-label") }}
-             {% endif %}
-            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-             {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
-       </div>
-
-        <div class="mb-3">
-            {{ form.confirm_password.label(class="form-label") }}
-            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
-             {% if form.confirm_password.errors %}<div class="invalid-feedback">{% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
-       </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                 {# Add note about password being optional on edit #}
+                 {% if 'Edit' in title %}
+                    <label class="form-label" for="password">{{ form.password.label.text }} (Leave blank to keep current)</label>
+                {% else %}
+                     {{ form.password.label(class="form-label") }}
+                 {% endif %}
+                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                 {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+           </div>
+           <div class="col-md-6 mb-3">
+                {{ form.confirm_password.label(class="form-label") }}
+                {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+                 {% if form.confirm_password.errors %}<div class="invalid-feedback">{% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+           </div>
+        </div>
 
         <div class="mb-3">
             {{ form.installed_software.label(class="form-label") }}
@@ -56,8 +68,10 @@
              {% if form.notes.errors %}<div class="invalid-feedback">{% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
        </div>
 
-        {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('admin.view_laptops') }}" class="btn btn-secondary">Cancel</a> {# Redirect to laptop list #}
+        <div class="mt-4"> {# Add margin top to buttons #}
+            {{ form.submit(class="btn btn-primary") }} {# Use btn-primary #}
+            <a href="{{ url_for('admin.view_laptops') }}" class="btn btn-secondary ms-2">Cancel</a> {# Use btn-secondary #}
+        </div>
     </form>
 
 {% endblock %}
