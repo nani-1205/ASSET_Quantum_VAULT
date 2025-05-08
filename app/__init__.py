@@ -20,7 +20,9 @@ def create_app(config_class=Config):
     def inject_current_year():
         """Injects the current year into all templates."""
         # Use timezone.utc to ensure consistency regardless of server timezone
-        return {'current_year': datetime.now(timezone.utc).year}
+        from pytz import timezone
+        india_timezone = timezone('Asia/Kolkata')
+        return {'current_year': datetime.now(india_timezone).year}
     # --- End Context Processor ---
 
 
