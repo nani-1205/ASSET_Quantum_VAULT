@@ -20,7 +20,7 @@ def create_app(config_class=Config):
     def inject_current_year():
         """Injects the current year into all templates."""
         # Use timezone.utc to ensure consistency regardless of server timezone
-        return {'current_year': datetime.now(timezone.utc).year}
+        return {'current_year': datetime.now(timezone.utc).astimezone().year}
     # --- End Context Processor ---
 
 
